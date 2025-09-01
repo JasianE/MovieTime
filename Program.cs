@@ -12,8 +12,6 @@ using api.Seed;
 
 var builder = WebApplication.CreateBuilder(args);
 
-var allowedOrigins = builder.Configuration["ALLOWED_ORIGINS"]?.Split(',') ?? Array.Empty<string>();
-
 // Add services to the container.
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 
@@ -21,7 +19,7 @@ builder.Services.AddCors(options =>
 {
     options.AddPolicy("CorsPolicy", policy =>
     {
-        policy.WithOrigins(allowedOrigins)
+        policy.AllowAnyOrigin()
               .AllowAnyHeader()
               .AllowAnyMethod();
     });
@@ -128,36 +126,6 @@ app.UseAuthentication();
 app.UseAuthorization();
 
 app.MapControllers();
-
-using (var scope = app.Services.CreateScope())
-{
-    var db = scope.ServiceProvider.GetRequiredService<ApplicationDBContext>();
-    var seeder = scope.ServiceProvider.GetRequiredService<SeedData>();
-
-    var retries = 10; //evil docker workaround
-    while (retries > 0)
-    {
-        try
-        {
-            db.Database.Migrate();
-            await seeder.InitializeAsync();
-            break;
-        }
-        catch (Exception ex)
-        {
-            retries--;
-            await Task.Delay(5000); // wait 5 seconds before retry
-        }
-    }
-
-    if (retries == 0)
-    {
-        Console.WriteLine("Could not connect to database. Exiting...");
-        Environment.Exit(1);
-    }
-}
-
-
 
 app.Run();
 

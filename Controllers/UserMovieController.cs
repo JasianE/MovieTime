@@ -49,7 +49,15 @@ namespace api.Controllers
             Movie? movie = await _movieRepo.GetMovieByName(movieDto.MovieName);
             if (movie == null)
             {
-                return BadRequest("Movie does not exist in DB.");
+                Movie? newMovie = await _movieRepo.AddMovieToDB(movieDto.MovieName);
+                if (newMovie == null)
+                {
+                    return BadRequest("Movie does not exist in DB.");
+                }
+                else
+                {
+                    movie = newMovie;
+                }
             }
             if (appUser == null)
             {
