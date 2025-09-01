@@ -33,6 +33,10 @@ namespace api.Data
             .WithMany(userMovie => userMovie.UserMovies)
             .HasForeignKey(userMovie => userMovie.MovieId);
 
+            builder.Entity<Movie>()
+            .HasIndex(m => m.Title)
+            .IsUnique(); // ensure that its unique
+
             List<IdentityRole> roles = new List<IdentityRole>
             {
                 new IdentityRole

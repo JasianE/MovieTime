@@ -50,6 +50,9 @@ namespace api.Controllers
             if (movie == null)
             {
                 Movie? newMovie = await _movieRepo.AddMovieToDB(movieDto.MovieName);
+                //Right now it doesn't check if it already exists AND the api doesn't check
+                //if the user has already done the request (no indontency, or whatever)
+                //Fix this bug.
                 if (newMovie == null)
                 {
                     return BadRequest("Movie does not exist in DB.");

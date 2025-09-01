@@ -24,7 +24,7 @@ namespace api.Repositories
         }
         public async Task<Movie?> AddMovieToDB(string movieName)
         {
-            Movie? CheckIfExists = await _context.Movies.FirstOrDefaultAsync(item => item.Title == movieName); // don't allow duplicate movies
+            Movie? CheckIfExists = await _context.Movies.FirstOrDefaultAsync(item => item.Title == movieName); // don't allow duplicate movies, but this is a race condition (currently if i spam frontend it don't work)
             if (CheckIfExists == null)
             {
                 //Create request from TMDB
@@ -57,9 +57,17 @@ namespace api.Repositories
                         PosterPath = theMovie.Poster_Path,
                         Runtime = "609",
                     };
-                    await _context.Movies.AddAsync(newMovie);
-                    await _context.SaveChangesAsync();
-                    return newMovie;
+                    try
+                    {
+                        await _context.Movies.AddAsync(newMovie);
+                        await _context.SaveChangesAsync();
+                        return newMovie;
+                    }
+                    catch (DbUpdateException ex)
+                    {
+                        Console.WriteLine("Hey im here!");
+                        return null; //throw in an error that says already exists
+                    }
                 }
                 else
                 {
