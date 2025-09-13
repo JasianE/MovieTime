@@ -1,8 +1,8 @@
 # MovieTime Backend
 
-The backend for the MovieTime application. Built with **.NET** to provide REST APIs for movie data, user accounts, and personalized recommendations. This backend is used by the MovieTime frontend. See the movietime full app to find the project w/ the docker file so that you can run it locally yourself. (Or look at the AWS link... coming soon!)
+The backend for the MovieTime application. Built with **.NET** to provide REST APIs for movie data, user accounts, and friend recommendations. This backend is used by the MovieTime frontend. See the movietime full app to find the project w/ the docker file so that you can run it locally yourself. (Or look at the AWS link... coming soon!)
 
-Made with much love and passion by your cook, Jun Li <3
+Made with much love and passion (and fun!). :D :D :D
 
 ## Features
 - REST API for user authentication, movie data, and recommendations
@@ -64,4 +64,5 @@ JasianE/
 | GET    | `/api/usermovie`                            | Get the currently logged-in user’s movies           | Yes           |
 | POST   | `/api/usermovie`                            | Add a movie to the currently logged-in user         | Yes           |
 | PUT    | `/api/usermovie/update/{MovieTitle}`       | Update the status of a user’s movie (e.g., watched)| Yes           |
+
 
