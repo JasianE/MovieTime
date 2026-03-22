@@ -22,7 +22,11 @@ namespace api.Data
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
-            builder.Entity<UserMovie>(entity => entity.HasKey(userMovie => new { userMovie.AppUserId, userMovie.MovieId }));
+            builder.Entity<UserMovie>(entity => entity.HasKey(userMovie => userMovie.Id));
+
+            builder.Entity<UserMovie>()
+            .HasIndex(userMovie => new { userMovie.AppUserId, userMovie.MovieId })
+            .IsUnique();
 
             builder.Entity<UserMovie>()
             .HasOne(userMovie => userMovie.AppUser)
@@ -33,6 +37,12 @@ namespace api.Data
             .HasOne(userMovie => userMovie.Movie)
             .WithMany(userMovie => userMovie.UserMovies)
             .HasForeignKey(userMovie => userMovie.MovieId);
+
+            builder.Entity<UserMovie>()
+            .HasOne(userMovie => userMovie.RecommendedBy)
+            .WithMany()
+            .HasForeignKey(userMovie => userMovie.RecommendedByUserId)
+            .OnDelete(DeleteBehavior.Restrict);
 
             builder.Entity<Movie>()
             .HasIndex(m => m.Title)

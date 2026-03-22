@@ -50,15 +50,21 @@ namespace api.Repositories
 
         public async Task<List<UserMovieMovie>> GetUserMovies(AppUser user)
         {
-            return await _context.UserMovies.Where(u => u.AppUserId == user.Id)
+            return await _context.UserMovies
+            .Where(u => u.AppUserId == user.Id)
             .Select(userMovie => new UserMovieMovie
             {
+                RecommendationId = userMovie.Id,
                 Title = userMovie.Movie.Title,
                 OverView = userMovie.Movie.OverView,
                 PosterPath = userMovie.Movie.PosterPath,
                 Runtime = userMovie.Movie.Runtime,
                 Id = userMovie.Movie.Id, // bruh this was excldued before,
-                Status = userMovie.Status
+                Status = userMovie.Status,
+                RecommendedByUserName = userMovie.RecommendedBy != null ? userMovie.RecommendedBy.UserName : "Unknown",
+                Reason = userMovie.Reason,
+                RecipientRating = userMovie.RecipientRating,
+                RecipientNotes = userMovie.RecipientNotes
 
             }).ToListAsync();
         }

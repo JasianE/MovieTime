@@ -9,5 +9,6 @@ namespace api.DTOs.UserMovie
     {
         public string MovieName { get; set; } = string.Empty;
         public string UserName { get; set; } = string.Empty;
+        public string? Reason { get; set; }
     }
 }

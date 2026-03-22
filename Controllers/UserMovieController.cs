@@ -99,7 +99,9 @@ namespace api.Controllers
             UserMovie newUserMovie = new UserMovie
             {
                 AppUserId = appUser.Id,
-                MovieId = movie.Id
+                MovieId = movie.Id,
+                RecommendedByUserId = requester.Id,
+                Reason = string.IsNullOrWhiteSpace(movieDto.Reason) ? null : movieDto.Reason
             };
 
             string result = await _userMovieRepo.AddUserMovie(newUserMovie);
@@ -135,6 +137,68 @@ namespace api.Controllers
                 var result = await _userMovieRepo.ChangeMovieStatus(appUser, itemOfInterest, 1);
                 return Ok(result);
             }
+        }
+
+        [HttpGet("recommendations/{id}")]
+        [Authorize]
+        public async Task<IActionResult> GetRecommendation([FromRoute] int id)
+        {
+            string userName = User.GetUserName();
+            AppUser? appUser = await _userManager.FindByNameAsync(userName);
+
+            var recommendation = await _context.UserMovies
+                .Include(item => item.Movie)
+                .Include(item => item.RecommendedBy)
+                .FirstOrDefaultAsync(item => item.Id == id && item.AppUserId == appUser.Id);
+
+            if (recommendation == null)
+            {
+                return NotFound("Recommendation not found.");
+            }
+
+            var dto = new RecommendationDetailDTO
+            {
+                RecommendationId = recommendation.Id,
+                Title = recommendation.Movie.Title,
+                OverView = recommendation.Movie.OverView,
+                PosterPath = recommendation.Movie.PosterPath,
+                Runtime = recommendation.Movie.Runtime,
+                Status = recommendation.Status,
+                RecommendedByUserName = recommendation.RecommendedBy != null ? recommendation.RecommendedBy.UserName : "Unknown",
+                Reason = recommendation.Reason,
+                RecipientRating = recommendation.RecipientRating,
+                RecipientNotes = recommendation.RecipientNotes
+            };
+
+            return Ok(dto);
+        }
+
+        [HttpPut("recommendations/{id}")]
+        [Authorize]
+        public async Task<IActionResult> UpdateRecommendation([FromRoute] int id, [FromBody] UpdateRecommendationDTO updateDto)
+        {
+            string userName = User.GetUserName();
+            AppUser? appUser = await _userManager.FindByNameAsync(userName);
+
+            var recommendation = await _context.UserMovies
+                .FirstOrDefaultAsync(item => item.Id == id && item.AppUserId == appUser.Id);
+
+            if (recommendation == null)
+            {
+                return NotFound("Recommendation not found.");
+            }
+
+            recommendation.RecipientRating = updateDto.RecipientRating;
+            recommendation.RecipientNotes = updateDto.RecipientNotes;
+
+            if (updateDto.Status.HasValue)
+            {
+                recommendation.Status = updateDto.Status.Value;
+            }
+
+            await _context.SaveChangesAsync();
+
+            return Ok();
         }
     }
 }
