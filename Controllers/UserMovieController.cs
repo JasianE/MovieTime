@@ -7,11 +7,14 @@ using api.DTOs.UserMovie;
 using api.Extensions;
 using api.Interfaces;
 using api.Models;
+using api.Models.Enums;
+using api.Data;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Components;
 using Microsoft.AspNetCore.Http.Features;
 using Microsoft.AspNetCore.Identity;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using Route = Microsoft.AspNetCore.Mvc.RouteAttribute;
 namespace api.Controllers
 {
@@ -22,12 +25,14 @@ namespace api.Controllers
         private readonly UserManager<AppUser> _userManager;
         private readonly IMovieRepository _movieRepo;
         private readonly IUserMovieRepository _userMovieRepo;
+        private readonly ApplicationDBContext _context;
 
-        public UserMovieController(UserManager<AppUser> userManager, IMovieRepository movieRepo, IUserMovieRepository userMovieRepo)
+        public UserMovieController(UserManager<AppUser> userManager, IMovieRepository movieRepo, IUserMovieRepository userMovieRepo, ApplicationDBContext context)
         {
             _userManager = userManager;
             _movieRepo = movieRepo;
             _userMovieRepo = userMovieRepo;
+            _context = context;
         }
 
         [HttpGet]
@@ -45,6 +50,8 @@ namespace api.Controllers
         public async Task<IActionResult> CreateUserMovie([FromBody] CreateUserMovieDTO movieDto) //name from other user
         {
             //Add in a recommended by in this field
+            string requesterName = User.GetUserName();
+            AppUser requester = await _userManager.FindByNameAsync(requesterName);
             AppUser? appUser = await _userManager.FindByNameAsync(movieDto.UserName);
             Movie? movie = await _movieRepo.GetMovieByName(movieDto.MovieName);
             if (movie == null)
@@ -52,7 +59,7 @@ namespace api.Controllers
                 Movie? newMovie = await _movieRepo.AddMovieToDB(movieDto.MovieName);
                 //Right now it doesn't check if it already exists AND the api doesn't check
                 //if the user has already done the request (no indontency, or whatever)
-                //Fix this bug.
+                //Fix this bug --> fixed! added .isUnique check in application db context
                 if (newMovie == null)
                 {
                     return BadRequest("Movie does not exist in DB.");
@@ -65,6 +72,21 @@ namespace api.Controllers
             if (appUser == null)
             {
                 return BadRequest("User does not exist.");
+            }
+
+            if (requester.Id == appUser.Id)
+            {
+                return BadRequest("You cannot recommend movies to yourself.");
+            }
+
+            bool areFriends = await _context.FriendRequests.AnyAsync(request =>
+                request.Status == FriendRequestStatus.Accepted &&
+                ((request.SenderId == requester.Id && request.ReceiverId == appUser.Id) ||
+                 (request.SenderId == appUser.Id && request.ReceiverId == requester.Id)));
+
+            if (!areFriends)
+            {
+                return StatusCode(403, "You can only recommend movies to friends.");
             }
 
             var userMovies = await _userMovieRepo.GetUserMovies(appUser);

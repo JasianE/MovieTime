@@ -18,6 +18,7 @@ namespace api.Data
 
         public DbSet<Movie> Movies { get; set; }
         public DbSet<UserMovie> UserMovies { get; set; }
+        public DbSet<FriendRequest> FriendRequests { get; set; }
         protected override void OnModelCreating(ModelBuilder builder)
         {
             base.OnModelCreating(builder);
@@ -36,6 +37,22 @@ namespace api.Data
             builder.Entity<Movie>()
             .HasIndex(m => m.Title)
             .IsUnique(); // ensure that its unique
+
+            builder.Entity<FriendRequest>()
+            .HasOne(request => request.Sender)
+            .WithMany()
+            .HasForeignKey(request => request.SenderId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<FriendRequest>()
+            .HasOne(request => request.Receiver)
+            .WithMany()
+            .HasForeignKey(request => request.ReceiverId)
+            .OnDelete(DeleteBehavior.Restrict);
+
+            builder.Entity<FriendRequest>()
+            .HasIndex(request => new { request.SenderId, request.ReceiverId })
+            .IsUnique();
 
             List<IdentityRole> roles = new List<IdentityRole>
             {
