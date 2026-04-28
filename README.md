@@ -11,6 +11,19 @@ The backend for the MovieTime application. Built with **.NET** to provide REST A
 - Recommendation metadata with rating/notes/watched updates
 - Separation of concerns with services, controllers, and models
 
+## Docker Compose
+
+From the repo root:
+
+```bash
+docker compose up --build
+```
+
+Compose reads environment defaults from the repo root .env file.
+
+- Backend: http://localhost:5000
+- Frontend: http://localhost:3000
+
 ## Project Structure
 ```bash
 api/

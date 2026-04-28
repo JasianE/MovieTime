@@ -13,4 +13,3 @@ FROM base AS final
 WORKDIR /app
 COPY --from=build /app/publish .
 ENTRYPOINT ["dotnet", "api.dll"]
-CMD ["/wait-for-it.sh", "db:1433", "--timeout=30", "--", "dotnet", "api.dll"]

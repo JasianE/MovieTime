@@ -33,7 +33,6 @@ namespace api.Controllers
         }
 
         [HttpGet("all")]
-        [Authorize]
         public async Task<IActionResult> GetAllUsers()
         {
             //Add pagination
